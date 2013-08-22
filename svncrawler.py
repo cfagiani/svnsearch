@@ -16,8 +16,12 @@ class SvnCrawler:
     request = urllib2.Request(baseUrl)
     if self.encodedAuth <> None:
       request.add_header("Authorization", "Basic %s" % self.encodedAuth)
-    result = urllib2.urlopen(request)
-    return result
+    try:
+      result = urllib2.urlopen(request)
+      return result
+    except Exception:
+      print "Could not load %s" % (baseUrl)
+      return None
 
   def evaluateLink(self,link):
     self.counter = self.counter+1
@@ -35,10 +39,14 @@ class SvnCrawler:
 
   def followLink(self, url):
     if self.counter % 100 == 0:
-      print self.counter
+      print "%d: %s" % (self.counter, url)
     result = self.fetchPage(url)
-    parser = SubversionHtmlParser()
-    parser.feed(result.read())
-    for link in parser.linkList:
-      if not (link == '../' or link == 'http://subversion.apache.org/' or link == 'branches/' or link == 'tags/' or link.startswith('.')) :
-        self.evaluateLink(url+link)
+    if result <> None:
+      parser = SubversionHtmlParser()
+      try:
+        parser.feed(result.read())
+        for link in parser.linkList:
+          if not (link == '../' or link == 'http://subversion.apache.org/' or link == 'branches/' or link == 'tags/' or link.startswith('.')) :
+            self.evaluateLink(url+link)
+      except Exception:
+        print "Could not parse %s" % (url)
