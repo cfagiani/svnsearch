@@ -1,5 +1,5 @@
 from svnparser import SubversionHtmlParser
-import urllib2, base64
+import urllib2, base64, traceback
 
 
 class SvnCrawler:
@@ -11,6 +11,7 @@ class SvnCrawler:
       self.encodedAuth = None
     self.searchString = searchString
     self.fileSuffixList = fileSuffixList
+    self.foundStart = True
 
   def fetchPage(self, baseUrl):
     request = urllib2.Request(baseUrl)
@@ -37,9 +38,11 @@ class SvnCrawler:
       print "FOUND %s in %s" % (self.searchString, link)
         
 
-  def followLink(self, url):
+  def followLink(self, url, startLink = None):
     if self.counter % 100 == 0:
       print "%d: %s" % (self.counter, url)
+    if startLink is not None:
+        self.foundStart = False
     result = self.fetchPage(url)
     if result <> None:
       parser = SubversionHtmlParser()
@@ -47,6 +50,11 @@ class SvnCrawler:
         parser.feed(result.read())
         for link in parser.linkList:
           if not (link == '../' or link == 'http://subversion.apache.org/' or link == 'branches/' or link == 'tags/' or link.startswith('.')) :
-            self.evaluateLink(url+link)
+            if not self.foundStart and startLink == link:
+              self.foundStart = True
+              print "Starting from %s" % (url + link)
+            if self.foundStart:
+              self.evaluateLink(url+link)
       except Exception:
         print "Could not parse %s" % (url)
+        traceback.print_exc()
