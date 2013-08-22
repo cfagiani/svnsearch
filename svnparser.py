@@ -12,7 +12,7 @@ class SubversionHtmlParser(HTMLParser):
   def handle_starttag(self, tag, attrs):
     for attr in attrs:
       if attr[0] == 'href':
-        if not (link == '../' or link == 'http://subversion.apache.org/'):
+        if not (attr[1] == '../' or attr[1] == 'http://subversion.apache.org/'):
           self.linkList.append(attr[1])
 
 
