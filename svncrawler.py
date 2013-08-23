@@ -42,12 +42,13 @@ class SvnCrawler:
     The file is only downloaded if its name ends with a target suffix.
     """
     self.counter = self.counter+1
-    for suffix in self.fileSuffixList:
-      if link.lower().endswith(suffix):
-        self.searchData(link)
-      elif link.endswith("/"):
-         self.followLink(link)
-   
+    if link.endswith("/"):
+      self.followLink(link)
+    else:
+      for suffix in self.fileSuffixList:
+        if link.lower().endswith(suffix):
+          self.searchData(link)
+      
   def searchData(self,link):
     """
     fetch the page from the link passed in, read it as text and check if it contains the searchString
